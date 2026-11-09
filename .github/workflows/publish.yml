@@ -5,6 +5,7 @@ on:
     paths:
       - 'sinnesorgane_quiz_kompakt.zip'
       - '.github/workflows/publish.yml'
+      - 'practice.js'
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,6 +29,14 @@ jobs:
           test -f _site/index.html
           test -f _site/cards.json
           test "$(find _site/images -type f | wc -l)" -eq 104
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('_site/index.html')
+          html=p.read_text(encoding='utf-8')
+          script=Path('practice.js').read_text(encoding='utf-8')
+          html=html.replace('</html>', '<script>'+script+'</script></html>')
+          p.write_text(html,encoding='utf-8')
+          PY
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
