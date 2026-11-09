@@ -60,14 +60,17 @@ next = function() {
 };
 rate = function(r) {
   const id = active.id;
-  originalRate(r);
   const s = state();
-  if (s[id]) { s[id].lastRating = r; store(s); }
+  const v = s[id] || {reps:0,interval:0,ease:2.5};
+  if (r === 1) { v.reps=0; v.interval=0; v.due=Date.now()+60000; }
+  else if (r === 2) { v.reps=0; v.interval=0; v.due=Date.now()+600000; }
+  else { v.reps++; v.ease=Math.max(1.3,v.ease+(r===4?.15:-.05)); v.interval=v.reps===1?1:v.reps===2?3:Math.max(1,Math.round(v.interval*v.ease*(r===4?1.3:1))); v.due=Date.now()+v.interval*86400000; }
+  v.lastRating=r; s[id]=v; store(s);
   if (practiceMode && r <= 2 && !practiceQueue.includes(id)) {
     // Difficult cards are asked again near the end of the round.
     practiceQueue.splice(Math.max(0,practiceQueue.length-2),0,id);
   }
-  if (practiceMode) next();
+  next();
 };
 const previousProfileChange = $('profile').onchange;
 $('profile').onchange = e => { practiceMode = false; practiceQueue = []; previousProfileChange(e); };
