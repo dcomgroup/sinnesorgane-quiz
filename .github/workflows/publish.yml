@@ -6,6 +6,7 @@ on:
       - 'sinnesorgane_quiz_kompakt.zip'
       - '.github/workflows/publish.yml'
       - 'practice.js'
+      - 'card_text_fixes.json'
   workflow_dispatch:
 permissions:
   contents: read
@@ -31,6 +32,17 @@ jobs:
           test "$(find _site/images -type f | wc -l)" -eq 104
           python3 - <<'PY'
           from pathlib import Path
+          import json
+          cards_path=Path('_site/cards.json')
+          cards=json.loads(cards_path.read_text(encoding='utf-8'))
+          fixes=json.loads(Path('card_text_fixes.json').read_text(encoding='utf-8'))
+          found=set()
+          for card in cards:
+            if card['id'] in fixes:
+              card['info']=fixes[card['id']]
+              found.add(card['id'])
+          assert found==set(fixes), f'Missing cards: {set(fixes)-found}'
+          cards_path.write_text(json.dumps(cards,ensure_ascii=False,indent=2),encoding='utf-8')
           p=Path('_site/index.html')
           html=p.read_text(encoding='utf-8')
           script=Path('practice.js').read_text(encoding='utf-8')
