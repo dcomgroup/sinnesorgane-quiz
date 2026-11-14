@@ -78,3 +78,16 @@ const previousGroupChange = $('group').onchange;
 $('group').onchange = e => { practiceMode = false; practiceQueue = []; previousGroupChange(e); };
 // Show the button immediately if today's scheduled cards are already finished.
 next();
+
+// One-time transfer to the consolidated HBG5-26 app (cross-origin storage cannot be read automatically).
+(function(){
+ const b=document.createElement('button');b.textContent='Lernstand für HBG5-26 exportieren';b.type='button';
+ b.style.margin='10px';document.body.append(b);
+ b.onclick=()=>{
+  const names=JSON.parse(localStorage.getItem('profiles-v1')||'["Kind 1"]');
+  const data={format:'hbg5-26-bio-ka01',version:1,profiles:names,progress:{}};
+  names.forEach(p=>data.progress[p]=JSON.parse(localStorage.getItem('learn-v1-'+p)||'{}'));
+  const a=document.createElement('a');const u=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.href=u;a.download='sinnesorgane-lernstand.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+ };
+})();
